@@ -3,11 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Furban QR Scanner</title>
+    <title>Celestial Cafe QR Scanner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
+        html, body { position: fixed; width: 100%; height: 100%; overflow: hidden; }
         body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
         #camera-container { position: relative; width: 100%; padding-top: 100%; overflow: hidden; border-radius: 0.5rem; background-color: #000; }
         #camera-view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -27,10 +39,12 @@
         @keyframes pulseSuccess { 0% { opacity: 0; } 50% { opacity: 0.8; } 100% { opacity: 0; } }
         .result-enter { animation: slideUp 0.4s ease-out; }
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .mobile-tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background-color: white; z-index: 50; }
+        .dark .mobile-tab-bar { background-color: #1F2937; }
         .loading-spinner { border: 3px solid rgba(0,0,0,0.1); border-top: 3px solid #5D5CDE; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px; }
         .dark .loading-spinner { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #5D5CDE; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .pb-safe { padding-bottom: 5rem; }
+        .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 5rem); }
         .scanning-active { position: absolute; bottom: 10px; left: 10px; right: 10px; padding: 5px 10px; background-color: rgba(0,0,0,0.6); color: white; border-radius: 5px; text-align: center; z-index: 5; }
     </style>
 </head>
@@ -40,60 +54,93 @@
             <h1 class="text-2xl font-bold text-primary">Celestial Cafe QR Scanner</h1>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Scan booking QR codes to verify</p>
         </header>
-        <div id="scanner-section" class="mb-6">
-            <div id="cameraScanner">
-                <div id="camera-container" class="bg-black relative">
-                    <video id="camera-view" autoplay playsinline muted></video>
-                    <canvas id="camera-canvas"></canvas>
-                    <div class="scan-guide">
-                        <div class="scan-corner top-left"></div>
-                        <div class="scan-corner top-right"></div>
-                        <div class="scan-corner bottom-left"></div>
-                        <div class="scan-corner bottom-right"></div>
+
+        <div class="mx-auto">
+            <!-- Scanner Container -->
+            <div id="scanner-section" class="mb-6">
+                <!-- Camera Scanner -->
+                <div id="cameraScanner" class="scanner-tab">
+                    <div id="camera-container" class="bg-black relative">
+                        <video id="camera-view" autoplay playsinline muted></video>
+                        <canvas id="camera-canvas"></canvas>
+                        <div class="scan-guide">
+                            <div class="scan-corner top-left"></div>
+                            <div class="scan-corner top-right"></div>
+                            <div class="scan-corner bottom-left"></div>
+                            <div class="scan-corner bottom-right"></div>
+                        </div>
+                        <div id="scanning-indicator" class="scanning-active hidden">
+                            Scanning active...
+                        </div>
                     </div>
-                    <div id="scanning-indicator" class="scanning-active hidden">
-                        Scanning active...
+                    <div id="camera-status" class="mt-3 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg text-yellow-800 dark:text-yellow-200 text-sm hidden">
+                        <p>Camera access required. Please allow camera permission when prompted.</p>
+                    </div>
+                    <div class="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">
+                        Center the QR code within the guide to scan
+                    </div>
+                    <div class="flex gap-2 mt-4">
+                        <button id="startCameraBtn" class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                            Start Camera
+                        </button>
+                        <button id="scanBtn" class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-lg transition-colors" disabled>
+                            Scan Now
+                        </button>
                     </div>
                 </div>
-                <div id="camera-status" class="mt-3 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg text-yellow-800 dark:text-yellow-200 text-sm hidden">
-                    <p>Camera access required. Please allow camera permission when prompted.</p>
+                <!-- File Upload -->
+                <div id="fileScanner" class="scanner-tab hidden">
+                    <div class="flex items-center justify-center w-full">
+                        <label for="qrFileInput" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <svg class="w-10 h-10 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                </svg>
+                                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Tap to upload</span> a photo</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG (MAX. 10MB)</p>
+                            </div>
+                            <input id="qrFileInput" type="file" class="hidden" accept="image/*" capture="environment" />
+                        </label>
+                    </div>
                 </div>
-                <div class="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">
-                    Center the QR code within the guide to scan
-                </div>
-                <div class="flex gap-2 mt-4">
-                    <button id="startCameraBtn" class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-lg transition-colors">
-                        Start Camera
-                    </button>
-                    <button id="scanBtn" class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-lg transition-colors" disabled>
-                        Scan Now
-                    </button>
+                <!-- Manual Input -->
+                <div id="manualInput" class="scanner-tab hidden">
+                    <div class="space-y-4">
+                        <p class="text-sm">Paste the QR code content below:</p>
+                        <textarea id="qrDataInput" rows="5" class="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-700 text-base" placeholder="Paste encrypted QR code data here..."></textarea>
+                        <button id="decodeManualBtn" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-lg transition-colors text-lg">
+                            Decode Data
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div id="resultContainer" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hidden mb-20">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold">Booking Details</h2>
-                <div class="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-3 py-1 rounded-full text-sm font-medium">
-                    Verified ✓
+            <!-- Results Container -->
+            <div id="resultContainer" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hidden mb-20">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">Booking Details</h2>
+                    <div class="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-3 py-1 rounded-full text-sm font-medium">
+                        Verified ✓
+                    </div>
                 </div>
+                <div id="bookingInfo" class="space-y-2"></div>
+                <button id="backToScannerBtn" class="mt-6 w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-lg transition-colors text-lg">
+                    Scan Another Code
+                </button>
             </div>
-            <div id="bookingInfo" class="space-y-2"></div>
-            <button id="backToScannerBtn" class="mt-6 w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-lg transition-colors text-lg">
-                Scan Another Code
-            </button>
-        </div>
-        <div id="errorContainer" class="bg-red-50 dark:bg-red-900/20 p-6 rounded-lg shadow-md mt-6 hidden mb-20">
-            <h2 class="text-xl font-semibold mb-2 text-red-700 dark:text-red-400">Error</h2>
-            <p id="errorMessage" class="text-red-600 dark:text-red-300"></p>
-            <button id="dismissErrorBtn" class="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors text-lg">
-                Dismiss
-            </button>
+            <!-- Error Container -->
+            <div id="errorContainer" class="bg-red-50 dark:bg-red-900/20 p-6 rounded-lg shadow-md mt-6 hidden mb-20">
+                <h2 class="text-xl font-semibold mb-2 text-red-700 dark:text-red-400">Error</h2>
+                <p id="errorMessage" class="text-red-600 dark:text-red-300"></p>
+                <button id="dismissErrorBtn" class="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors text-lg">
+                    Dismiss
+                </button>
+            </div>
         </div>
         <div class="fixed bottom-20 left-0 right-0 text-center text-xs text-gray-500 dark:text-gray-400 py-2">
             <p>v2503302125</p>
             <p>© 2025 Mikazuki Fox / Leo Chan</p>
         </div>
+
         <button id="toggleTheme" class="fixed top-4 right-4 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold p-2 rounded-full transition-colors shadow-lg z-10">
             <span id="themeIcon" class="text-xl">🌙</span>
         </button>
