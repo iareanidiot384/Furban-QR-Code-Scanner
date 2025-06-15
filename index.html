@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Celestial Cafe QR Scanner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* All the existing CSS from your file goes here (copy as-is) */
+        html, body { position: fixed; width: 100%; height: 100%; overflow: hidden; }
+        body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        #camera-container { position: relative; width: 100%; padding-top: 100%; overflow: hidden; border-radius: 0.5rem; background-color: #000; }
+        #camera-view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        #camera-canvas { display: none; }
+        .scan-guide { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; height: 70%; border: 2px dashed rgba(255,255,255,0.5); border-radius: 20px; pointer-events: none; z-index: 2; }
+        .scan-corner { position: absolute; width: 30px; height: 30px; }
+        .top-left { top: -2px; left: -2px; border-top: 4px solid #5D5CDE; border-left: 4px solid #5D5CDE; border-top-left-radius: 15px; }
+        .top-right { top: -2px; right: -2px; border-top: 4px solid #5D5CDE; border-right: 4px solid #5D5CDE; border-top-right-radius: 15px; }
+        .bottom-left { bottom: -2px; left: -2px; border-bottom: 4px solid #5D5CDE; border-left: 4px solid #5D5CDE; border-bottom-left-radius: 15px; }
+        .bottom-right { bottom: -2px; right: -2px; border-bottom: 4px solid #5D5CDE; border-right: 4px solid #5D5CDE; border-bottom-right-radius: 15px; }
+        .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; animation: slideDown 0.3s ease-out, fadeOut 0.5s ease-out 2.5s forwards; width: 85%; max-width: 400px; }
+        .toast-success { background-color: #10B981; color: white; }
+        .toast-error { background-color: #EF4444; color: white; }
+        @keyframes slideDown { from { transform: translate(-50%, -30px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
+        .scan-indicator { position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 5px solid #10B981; border-radius: 8px; animation: pulseSuccess 1s; pointer-events: none; z-index: 10; }
+        @keyframes pulseSuccess { 0% { opacity: 0; } 50% { opacity: 0.8; } 100% { opacity: 0; } }
+        .result-enter { animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .mobile-tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background-color: white; z-index: 50; }
+        .dark .mobile-tab-bar { background-color: #1F2937; }
+        .loading-spinner { border: 3px solid rgba(0, 0, 0, 0.1); border-top: 3px solid #5D5CDE; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px; }
+        .dark .loading-spinner { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #5D5CDE; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 5rem); }
+        .scanning-active { position: absolute; bottom: 10px; left: 10px; right: 10px; padding: 5px 10px; background-color: rgba(0,0,0,0.6); color: white; border-radius: 5px; text-align: center; z-index: 5; }
+    </style>
+</head>
+<body class="min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-200 pb-safe">
+    <!-- All your HTML content remains unchanged below -->
+    <!-- ... (keep everything between <body> and </body> from your previous file) ... -->
+    <!-- ... -->
+    <div class="container mx-auto px-4 py-6">
+        <!-- ...scanner, results, etc... -->
+        <!-- (copy all the HTML structure as provided previously) -->
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
