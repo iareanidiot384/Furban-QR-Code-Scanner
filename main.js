@@ -425,7 +425,7 @@ document.getElementById('backToScannerBtn').addEventListener('click', () => {
     }
 });
 
-// Dismiss error button - automatically resume scanning
+// Dismiss error button - automatically resume scanning //
 document.getElementById('dismissErrorBtn').addEventListener('click', () => {
     document.getElementById('errorContainer').classList.add('hidden');
     document.getElementById('scanner-section').classList.remove('hidden');
